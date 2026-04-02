@@ -12,11 +12,15 @@ _remove_prefix: Final[Callable[[str, str], str ]] = lambda pat, str_: sub(f"^{pa
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————— #
 
-def split_unquoted(delim: str, str_to_split: str):
+def split_unquoted(delim: str, str_to_split: str) -> list[str]:
 
     # Get every instance of the delimiter in the string
     matches: Final[Iterator[Match[str]]] = finditer(delim, str_to_split)
     match_idxs: Final[list[int]] = [match.span()[0] for match in matches]
+    
+    # If there aren't any matches, then there's just one segment
+    if len(match_idxs) == 0:
+        return [str_to_split]
 
     # Iterate through the text, and split it at every instance of the delimiter
     #  which isn't inside quotes.
@@ -34,4 +38,3 @@ def split_unquoted(delim: str, str_to_split: str):
     output_segments.append(_remove_prefix(delim, trailing_segment))
 
     return output_segments
-

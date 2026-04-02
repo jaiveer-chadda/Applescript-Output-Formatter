@@ -20,3 +20,22 @@ class UIElement:
         
         self.identifier:  str  = self.name if self.name else self.idx
         self._id_is_name: bool = bool(self.name)
+
+    def _id_formatted(self) -> str:
+        if self._id_is_name: return f'"{self.identifier}"'
+        return self.identifier
+
+    def _name_formatted(self) -> str:
+        return f'"{self.name}"' if self.name else 'None'
+
+    def __str__(self) -> str:
+        return f"{self.type} {self._id_formatted()}"
+
+    def __repr__(self) -> str:
+        params: list[str] = [
+            f"type: {self.type}",
+            f"idx: {self.idx}",
+            f"name: {self._name_formatted()}",
+            f"identifier: {self._id_formatted()}"
+        ]
+        return f"UIElement({", ".join(params)})"

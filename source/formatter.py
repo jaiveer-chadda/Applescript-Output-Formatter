@@ -6,7 +6,9 @@ from re import Match, finditer, sub
 
 from typing import Callable, Final, Iterator
 
-# ———————————————————————————————————————————————————————————————————————————— #
+from ui_element import UIElement  # ./ui_element.py
+
+# ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————— #
 
 ARGC: Final[int] = len(argv)
 
@@ -18,20 +20,20 @@ DOUBLE_QUOTE: Final[str] = '"'
 COMMA_DELIM:  Final[str] = ", "
 OF_DELIM:     Final[str] = " of "
 
-# ———————————————————————————————————————————————————————————————————————————— #
+# ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————— #
 
 _is_even:       Final[Callable[[int],      bool]] = lambda n        : n % 2 == 0
 _is_unquoted:   Final[Callable[[int, str], bool]] = lambda idx, str_: _is_even(str_[:idx].count(DOUBLE_QUOTE))
 _remove_prefix: Final[Callable[[str, str], str ]] = lambda pat, str_: sub(f"^{pat}", '', str_)
 
-# ———————————————————————————————————————————————————————————————————————————— #
+# ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————— #
 
 def split_unquoted(delim: str, str_to_split: str):
-    
+
     # Get every instance of the delimiter in the string
     matches: Final[Iterator[Match[bytes]]] = finditer(delim, str_to_split)
     match_idxs: Final[list[int]] = [match.span()[0] for match in matches]
-    
+
     # Iterate through the text, and split it at every instance of the delimiter
     #  which isn't inside quotes.
     # Also remove the delimiter from each line
@@ -46,7 +48,7 @@ def split_unquoted(delim: str, str_to_split: str):
 
     return output_segments
 
-# ———————————————————————————————————————————————————————————————————————————— #
+# ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————— #
 
 file_path: Final[str] = argv[1] if ARGC >= 2 else input("Enter input filepath >>> ")
 
@@ -62,7 +64,7 @@ with open(file_path, 'r') as f:
 # Check that the stripped file is just one line long
 if file_contents.count(NEWLINE) != 0: raise ValueError("File must be a single line")
 
-# ———————————————————————————————————————————————————————————————————————————— #
+# ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————— #
 
 # If the file starts or ends with curly braces, remove them
 if file_contents[0]  == OPEN_PAREN:  file_contents = file_contents[1:]
@@ -76,9 +78,12 @@ file_lines: list[str] = split_unquoted(COMMA_DELIM, file_contents)
 line_indents: list[dict[str, int | list[str]]] = []
 
 for line in file_lines:
+    segments: list[str] = split_unquoted(OF_DELIM, line)
+    ui_elems: list[UIElement] = [UIElement(segment) for segment in segments]
+
     line_indents.append({
         "indent": 0,
-        "content": split_unquoted(OF_DELIM, line)
+        "content": ui_elems
     })
 
 # for line in line_indents: print(*line["content"], sep='\t')

@@ -2,8 +2,6 @@
 
 from sys import argv
 from os.path import isfile, isdir, exists
-
-from uuid import uuid8
 from re import Match, finditer, sub
 
 from typing import Callable, Final, Iterator
@@ -17,19 +15,35 @@ OPEN_PAREN:   Final[str] = '{'
 CLOSE_PAREN:  Final[str] = '}'
 DOUBLE_QUOTE: Final[str] = '"'
 
-DELIM: Final[str] = uuid8().hex
 COMMA_DELIM: Final[str] = ", "
 
 # ———————————————————————————————————————————————————————————————————————————— #
 
-is_even: Final[Callable[[int], bool]] = lambda n: n % 2 == 0
+_is_even:       Final[Callable[[int],      bool]] = lambda n        : n % 2 == 0
+_is_unquoted:   Final[Callable[[int, str], bool]] = lambda idx, str_: _is_even(str_[:idx].count(DOUBLE_QUOTE))
+_remove_prefix: Final[Callable[[str, str], str ]] = lambda pat, str_: sub(f"^{pat}", '', str_)
 
-def is_not_in_quotes(index: int, string: str) -> bool:
-    left_quote_count: Final[int] = string[:index].count(DOUBLE_QUOTE)
-    return is_even(left_quote_count)
+# ———————————————————————————————————————————————————————————————————————————— #
 
-def remove_prefix(pattern: str, string: str) -> str:
-    return sub(f"^{pattern}", '', string)
+def split_unquoted(delim: str, str_to_split: str):
+    
+    # Get every instance of the delimiter in the string
+    matches: Final[Iterator[Match[bytes]]] = finditer(delim, str_to_split)
+    match_idxs: Final[list[int]] = [match.span()[0] for match in matches]
+    
+    # Iterate through the text, and split it at every instance of the delimiter
+    #   which isn't inside quotes.
+    # Also remove the delimiter from each line
+    output_segments: list[str] = []
+
+    for i, match_idx in enumerate(match_idxs):
+        if _is_unquoted(match_idx, str_to_split):
+            start_idx: int = match_idxs[i-1] if i != 0 else 0
+            segment:   str = str_to_split[start_idx:match_idx]
+
+            output_segments.append(_remove_prefix(delim, segment))
+
+    return output_segments
 
 # ———————————————————————————————————————————————————————————————————————————— #
 
@@ -53,26 +67,13 @@ if file_contents.count(NEWLINE) != 0: raise ValueError("File must be a single li
 if file_contents[0]  == OPEN_PAREN:  file_contents = file_contents[1:]
 if file_contents[-1] == CLOSE_PAREN: file_contents = file_contents[:-1]
 
-# Get every instance of ", " in the file
-all_commas: Final[Iterator[Match[bytes]]] = finditer(COMMA_DELIM, file_contents)
-all_comma_idxs: Final[list[int]] = [match.span()[0] for match in all_commas]
-
-
-# Iterate through the text, and split it at every instance of ", "
-#   which isn't inside quotes.
-# Also remove the comma sequences from each line
-file_lines: list[str] = []
-
-for i, comma_idx in enumerate(all_comma_idxs):
-    if is_not_in_quotes(comma_idx, file_contents):
-        start_idx: int = all_comma_idxs[i-1] if i != 0 else 0
-        segment:   str = file_contents[start_idx:comma_idx]
-
-        file_lines.append(remove_prefix(COMMA_DELIM, segment))
+# Split the file at every unquoted instance of ", " (COMMA_DELIM)
+file_lines: list[str] = split_unquoted(COMMA_DELIM, file_contents)
 
 # Create a dictionary for each line
 lines_dicts: list[dict[str, str | int]] = [
-    { "indent": 0,
-      "content": line
-    } for line in file_lines
+    { "indent": 0, "content": line }
+    for line in file_lines
 ]
+
+for i in lines_dicts: print(i)

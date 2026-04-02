@@ -30,5 +30,8 @@ def split_unquoted(delim: str, str_to_split: str):
 
             output_segments.append(_remove_prefix(delim, segment))
 
+    trailing_segment: Final[str] = str_to_split[match_idx:]
+    output_segments.append(_remove_prefix(delim, trailing_segment))
+
     return output_segments
 

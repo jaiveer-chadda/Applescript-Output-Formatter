@@ -4,7 +4,7 @@ from sys import argv
 from os.path import isfile, isdir, exists
 
 from uuid import uuid8
-from re import finditer, Match
+from re import Match, finditer, sub
 
 from typing import Callable, Final, Iterator
 
@@ -24,9 +24,12 @@ COMMA_DELIM: Final[str] = ", "
 
 is_even: Final[Callable[[int], bool]] = lambda n: n % 2 == 0
 
-def is_inside_quotes(index: int, string: str) -> bool:
+def is_not_in_quotes(index: int, string: str) -> bool:
     left_quote_count: Final[int] = string[:index].count(DOUBLE_QUOTE)
-    return not is_even(left_quote_count)
+    return is_even(left_quote_count)
+
+def remove_prefix(pattern: str, string: str) -> str:
+    return sub(f"^{pattern}", '', string)
 
 # ———————————————————————————————————————————————————————————————————————————— #
 
@@ -55,10 +58,21 @@ all_commas: Final[Iterator[Match[bytes]]] = finditer(COMMA_DELIM, file_contents)
 all_comma_idxs: Final[list[int]] = [match.span()[0] for match in all_commas]
 
 
+# Iterate through the text, and split it at every instance of ", "
+#   which isn't inside quotes.
+# Also remove the comma sequences from each line
 file_lines: list[str] = []
 
 for i, comma_idx in enumerate(all_comma_idxs):
-    if not is_inside_quotes(comma_idx, file_contents):
-        file_lines.append(file_contents[all_comma_idxs[i-1]:comma_idx])
-    
-for i in file_lines: print(i)
+    if is_not_in_quotes(comma_idx, file_contents):
+        start_idx: int = all_comma_idxs[i-1] if i != 0 else 0
+        segment:   str = file_contents[start_idx:comma_idx]
+
+        file_lines.append(remove_prefix(COMMA_DELIM, segment))
+
+# Create a dictionary for each line
+lines_dicts: list[dict[str, str | int]] = [
+    { "indent": 0,
+      "content": line
+    } for line in file_lines
+]

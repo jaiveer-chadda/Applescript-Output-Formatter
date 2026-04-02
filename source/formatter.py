@@ -60,13 +60,13 @@ def read_file(file: str) -> str:
 # ——— clean_file ———————————————————————————————————————————————————————————————————————————————————————————————————— #
 
 def clean_file(_file_contents: str) -> str:
-    new_file_contents: str
+    _file_contents: str
 
     # If the file starts or ends with curly braces, remove them
-    if _file_contents[0]  == OPEN_PAREN:  new_file_contents = _file_contents[1:]
-    if _file_contents[-1] == CLOSE_PAREN: new_file_contents = _file_contents[:-1]
+    if _file_contents[0]  == OPEN_PAREN:  _file_contents = _file_contents[1:]
+    if _file_contents[-1] == CLOSE_PAREN: _file_contents = _file_contents[:-1]
     
-    return new_file_contents
+    return _file_contents
 
 
 # ——— parse_file ———————————————————————————————————————————————————————————————————————————————————————————————————— #

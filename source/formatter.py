@@ -15,7 +15,8 @@ OPEN_PAREN:   Final[str] = '{'
 CLOSE_PAREN:  Final[str] = '}'
 DOUBLE_QUOTE: Final[str] = '"'
 
-COMMA_DELIM: Final[str] = ", "
+COMMA_DELIM:  Final[str] = ", "
+OF_DELIM:     Final[str] = " of "
 
 # ———————————————————————————————————————————————————————————————————————————— #
 
@@ -32,7 +33,7 @@ def split_unquoted(delim: str, str_to_split: str):
     match_idxs: Final[list[int]] = [match.span()[0] for match in matches]
     
     # Iterate through the text, and split it at every instance of the delimiter
-    #   which isn't inside quotes.
+    #  which isn't inside quotes.
     # Also remove the delimiter from each line
     output_segments: list[str] = []
 
@@ -67,13 +68,18 @@ if file_contents.count(NEWLINE) != 0: raise ValueError("File must be a single li
 if file_contents[0]  == OPEN_PAREN:  file_contents = file_contents[1:]
 if file_contents[-1] == CLOSE_PAREN: file_contents = file_contents[:-1]
 
-# Split the file at every unquoted instance of ", " (COMMA_DELIM)
+# Split the file at every unquoted instance of ", "
 file_lines: list[str] = split_unquoted(COMMA_DELIM, file_contents)
 
-# Create a dictionary for each line
-lines_dicts: list[dict[str, str | int]] = [
-    { "indent": 0, "content": line }
-    for line in file_lines
-]
+# Create a dictionary for each line,
+#  and split each line at " of "
+line_indents: list[dict[str, int | list[str]]] = []
 
-for i in lines_dicts: print(i)
+for line in file_lines:
+    line_indents.append({
+        "indent": 0,
+        "content": split_unquoted(OF_DELIM, line)
+    })
+
+# for line in line_indents: print(*line["content"], sep='\t')
+for line in line_indents: print(line)

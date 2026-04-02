@@ -15,7 +15,7 @@ _remove_prefix: Final[Callable[[str, str], str ]] = lambda pat, str_: sub(f"^{pa
 def split_unquoted(delim: str, str_to_split: str):
 
     # Get every instance of the delimiter in the string
-    matches: Final[Iterator[Match[bytes]]] = finditer(delim, str_to_split)
+    matches: Final[Iterator[Match[str]]] = finditer(delim, str_to_split)
     match_idxs: Final[list[int]] = [match.span()[0] for match in matches]
 
     # Iterate through the text, and split it at every instance of the delimiter

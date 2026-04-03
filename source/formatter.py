@@ -12,7 +12,7 @@ from ui_element import UIElement
 
 # ——— Constants ————————————————————————————————————————————————————————————————————————————————————————————————————— #
 
-ln_obj = list[dict[str, int | list[UIElement]]]
+ln_obj = list[dict[str, int | UIElement]]
 
 # —————————————————————————————————————————————————— #
 
@@ -75,22 +75,14 @@ def parse_file(_file_contents: str) -> ln_obj:
     # Split the file at every unquoted instance of ", "
     _file_lines: Final[list[str]] = split_unquoted(COMMA_DELIM, _file_contents)
 
-    # ——————————————————————————————————————————————————————— #
-
-    # Create a dictionary for each line,
-    #  and split each line at " of "
-    _lines_obj: ln_obj = []
-
-    for _line in _file_lines:
-        _segments: list[str] = split_unquoted(OF_DELIM, _line)
-        _ui_elems: list[UIElement] = [UIElement(segment) for segment in _segments]
-
-        _lines_obj.append({
+    # Create a dictionary for each line
+    return [
+        {
             "indent": 0,
-            "content": _ui_elems
-        })
-        
-    return _lines_obj
+            "content": UIElement(_line)
+        }
+        for _line in _file_lines
+    ]
 
 
 # ——— main —————————————————————————————————————————————————————————————————————————————————————————————————————————— #
@@ -106,7 +98,8 @@ def main() -> None:
     # ——————————————————————————————————————————————————————— #
 
     for line in lines_object:
-        print(line["indent"], *map(str, line["content"]), sep='\t')
+        # print(line["indent"], line["content"])
+        print(line["content"])
 
 
 if __name__ == "__main__":

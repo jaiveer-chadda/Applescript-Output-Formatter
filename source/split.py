@@ -6,13 +6,13 @@ from typing import Callable, Final, Iterator
 
 DOUBLE_QUOTE: Final[str] = '"'
 
-_is_even:       Final[Callable[[int],      bool]] = lambda n        : n % 2 == 0
-_is_unquoted:   Final[Callable[[int, str], bool]] = lambda idx, str_: _is_even(str_[:idx].count(DOUBLE_QUOTE))
-_remove_prefix: Final[Callable[[str, str], str ]] = lambda pat, str_: sub(f"^{pat}", '', str_)
+_is_even:       Final[Callable[[int],           bool]] = lambda num:           num % 2 == 0
+_is_unquoted:   Final[Callable[[int, str, str], bool]] = lambda idx, str, qot: _is_even(str[:idx].count(qot))
+_remove_prefix: Final[Callable[[str, str],      str ]] = lambda pat, str:      sub(f"^{pat}", "", str)
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————— #
 
-def split_unquoted(delim: str, str_to_split: str) -> list[str]:
+def split_unquoted(delim: str, str_to_split: str, quote_type: str = DOUBLE_QUOTE) -> list[str]:
 
     # Get every instance of the delimiter in the string
     matches: Final[Iterator[Match[str]]] = finditer(delim, str_to_split)
@@ -28,7 +28,7 @@ def split_unquoted(delim: str, str_to_split: str) -> list[str]:
     output_segments: list[str] = []
 
     for i, match_idx in enumerate(match_idxs):
-        if _is_unquoted(match_idx, str_to_split):
+        if _is_unquoted(match_idx, str_to_split, quote_type):
             start_idx: int = match_idxs[i-1] if i != 0 else 0
             segment:   str = str_to_split[start_idx:match_idx]
 

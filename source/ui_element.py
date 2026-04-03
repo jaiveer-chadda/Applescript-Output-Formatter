@@ -1,4 +1,7 @@
 from re import findall
+from uuid import uuid8
+from random import randrange, seed
+
 from typing import Any, Callable, Final, Optional
 
 from split import split_unquoted
@@ -9,7 +12,8 @@ match_tuple = tuple[str | None, str | None, str | None]
 
 # —————————————————————————————————————————————————— #
 
-OF_DELIM: Final[str] = " of "
+OF_DELIM:    Final[str] = " of "
+_HASH_DELIM: Final[str] = str(uuid8())
 
 _TYPE_REGEX: Final[str] = '([^"]+?)'
 _IDX_REGEX:  Final[str] = '(\\d+)'
@@ -19,17 +23,21 @@ _MATCH_ALL_REGEX: Final[str] = f"{_TYPE_REGEX} (?:{_IDX_REGEX}|{_NAME_REGEX})$"
 
 # —————————————————————————————————————————————————— #
 
-is_string: Final[Callable[[Any], bool]] = lambda x: isinstance(x, str)
+_is_string: Final[Callable[[Any],       bool]] = lambda x: isinstance(x, str)
+_hash_list: Final[Callable[[list[str]], int ]] = lambda x: hash(_HASH_DELIM.join(x))
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————— #
 
 class UIElement:
+    
+    all_UIElements: set = set()
 
     def __init__(self: UIElement, input_: str | list[str]) -> None:
+        
+        self.hash: int = _hash_list(input_)
+        self.all_UIElements.add(self.hash)
 
-        _all_segments: list[str] = split_unquoted(OF_DELIM, input_) if is_string(input_) else input_
-        self.parent: Optional[UIElement] = UIElement(_all_segments[1:]) if len(_all_segments) >= 2 else None
-
+        _all_segments: list[str] = split_unquoted(OF_DELIM, input_) if _is_string(input_) else input_
         _parse_result: Final[match_tuple] = self._parse_raw_elem_name(_all_segments[0])
 
         self.type:          str  =     _parse_result[0]
@@ -38,11 +46,28 @@ class UIElement:
 
         self.iden: str | int = self.name if self.name else self.idx
 
+        self.parent: Optional[UIElement] = UIElement(_all_segments[1:]) if len(_all_segments) >= 2 else None
+        
     # ——————————————————————————————————————————————————————————————————————————— #
     
-    @property
-    def id(self):
-        return f"{id(self)}{(self._par_id_formatted())}"
+    def id(self, do_colour: bool = False):
+        
+        colour: str = ""
+        reset:  str = ""
+
+        if do_colour:
+            reset = "\033[0m"
+
+            seed(self.hash)
+            r: int = randrange(50, 255)
+            g: int = randrange(50, 255)
+            b: int = randrange(50, 255)
+
+            colour = f"\033[38;2;{r};{g};{b}m"
+
+        parent = f".{self.parent.id(do_colour)}" if self.parent else ''
+        
+        return f"{colour}{id(self)}{parent}{reset}"
     
     # ——————————————————————————————————————————————————————————————————————————— #
 
@@ -80,6 +105,5 @@ class UIElement:
     def   _iden_formatted(self) -> str: return f'"{self.iden}"'         if self.name   else self.iden
     def   _name_formatted(self) -> str: return f'"{self.name}"'         if self.name   else None
     def _parent_formatted(self) -> str: return f"\t/ {str(self.parent)}" if self.parent else ''
-    def _par_id_formatted(self) -> str: return f".{self.parent.id}"     if self.parent else ''
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————— #

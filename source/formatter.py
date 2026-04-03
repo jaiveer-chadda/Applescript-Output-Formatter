@@ -23,7 +23,6 @@ OPEN_PAREN:   Final[str] = '{'
 CLOSE_PAREN:  Final[str] = '}'
 
 COMMA_DELIM:  Final[str] = ", "
-OF_DELIM:     Final[str] = " of "
 
 INPUT_PROMPT: Final[str] = "Enter input filepath >>> "
 
@@ -100,7 +99,9 @@ def main() -> None:
     for line in lines_object:
         # print(line["indent"], line["content"])
         ui_elem: UIElement = line["content"]
-        print(ui_elem.id)
+        print(ui_elem.id(True))
+
+    print(len(UIElement.all_UIElements))
 
 
 if __name__ == "__main__":

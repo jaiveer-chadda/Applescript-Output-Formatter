@@ -39,6 +39,12 @@ class UIElement:
         self.iden: str | int = self.name if self.name else self.idx
 
     # ——————————————————————————————————————————————————————————————————————————— #
+    
+    @property
+    def id(self):
+        return f"{id(self)}{(self._par_id_formatted())}"
+    
+    # ——————————————————————————————————————————————————————————————————————————— #
 
     def _parse_raw_elem_name(self, raw_name: str) -> match_tuple:
         _parse_result: Final[list[str]] = findall(_MATCH_ALL_REGEX, raw_name)[0]
@@ -47,12 +53,6 @@ class UIElement:
             _match if _match != '' else None
             for _match in _parse_result
         ])
-
-    # ——————————————————————————————————————————————————————————————————————————— #
-
-    def   _iden_formatted(self) -> str: return f'"{self.iden}"'         if self.name   else self.iden
-    def   _name_formatted(self) -> str: return f'"{self.name}"'         if self.name   else None
-    def _parent_formatted(self) -> str: return f" / {str(self.parent)}" if self.parent else ''
 
     # ——————————————————————————————————————————————————————————————————————————— #
 
@@ -74,5 +74,12 @@ class UIElement:
             f"parent: {str(self.parent)}",
             ")"
         ))
+
+    # ——————————————————————————————————————————————————————————————————————————— #
+
+    def   _iden_formatted(self) -> str: return f'"{self.iden}"'         if self.name   else self.iden
+    def   _name_formatted(self) -> str: return f'"{self.name}"'         if self.name   else None
+    def _parent_formatted(self) -> str: return f"\t/ {str(self.parent)}" if self.parent else ''
+    def _par_id_formatted(self) -> str: return f".{self.parent.id}"     if self.parent else ''
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————— #

@@ -99,7 +99,8 @@ def main() -> None:
 
     for line in lines_object:
         # print(line["indent"], line["content"])
-        print(line["content"])
+        ui_elem: UIElement = line["content"]
+        print(ui_elem.id)
 
 
 if __name__ == "__main__":

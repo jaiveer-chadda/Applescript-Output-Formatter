@@ -2,13 +2,16 @@ from re import findall
 from uuid import uuid8
 from random import randrange, seed as set_seed
 
-from typing import Annotated, Any, Callable, Final, Optional, Self
+from typing import Annotated, Any, Callable, Final, Literal, Optional, Self
 
 from split import split_unquoted
 from infinity import Infinity
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————— #
 
+empty_str = Literal['']
+
+EMPTY_STR: Final[Literal['']] = ''
 INFINITY: Final[Infinity] = Infinity()
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————— #
@@ -21,6 +24,8 @@ class UIElement:
     match_tuple = tuple[str, Optional[int], Optional[str]]
     
     # ———— Constants ————————————————————————————————————— #
+
+    __RESET: Final[str] = "\x1b[0m"
 
     __PARENT_SEPARATOR: Final[str] = " / "
     __ID_SEPARATOR:     Final[str] = '.'
@@ -40,8 +45,6 @@ class UIElement:
     __all_UIElements: dict[str, UIElement] = {}
     __all_segments: list[str]
 
-    __do_colour: bool = False
-    __reset_col: str = ""
 
     # —— __new__() ————————————————————————————————————————————————————————————————————— #
 
@@ -89,14 +92,13 @@ class UIElement:
         # Just a note to self that self.__unique_id does exist, but is assigned in __new__
         self._unique_id: str
 
-        # Also initialise a few other attributes that I'll use later
-        self.__colour: str = ""
+        # Also initialise a few other attributes that'll be used later
         self.parent: Optional[UIElement]
         self.depth: int
-        
+
         # Initialise each object's unique colour
-        if self.__do_colour:
-            self.__init_colour()
+        self.__colour: str
+        self.__init_colour()
 
         # Recursively parse the element's parents by handing the constructor all remaining segments
         #  But only do so if there are actually any segments left
@@ -111,19 +113,20 @@ class UIElement:
         self.depth = self.parent.depth + 1
 
 
+    # ——————————————————————————————————————————————————————————————————————————————————————————————————————————— #
     # —— __Initialisation Functions ———————————————————————————————————————————————————— #
 
     def __init_identifiers(self, raw_name: str) -> None:
-        _parse_result: Final[list[str]] = findall(self.__MATCH_ALL_REGEX, raw_name)[0]
+        _parse_result: Final[list[str | empty_str]] = findall(self.__MATCH_ALL_REGEX, raw_name)[0]
 
         self.type: str           =     _parse_result[0]
-        self.idx:  Optional[int] = int(_parse_result[1]) if _parse_result[1] != '' else None
-        self.name: Optional[str] =     _parse_result[2]  if _parse_result[2] != '' else None
+        self.idx:  Optional[int] = int(_parse_result[1]) if _parse_result[1] != EMPTY_STR else None
+        self.name: Optional[str] =     _parse_result[2]  if _parse_result[2] != EMPTY_STR else None
 
 
     def __init_colour(self, _seed: Annotated[Optional[Any], "default: self._unique_id"] = None) -> None:
         set_seed(self._unique_id if _seed is None else _seed)
-        self.__colour = f"\033[38;2;{';'.join(self.__rand_rgb())}m"
+        self.__colour = f"\x1b[38;2;{';'.join(self.__rand_rgb())}m"
 
 
     # —— Class Methods ————————————————————————————————————————————————————————————————— #
@@ -134,18 +137,14 @@ class UIElement:
             return cls.__all_UIElements
         return tuple(cls.__all_UIElements.values())
 
-    @classmethod
-    def do_colour(cls, set: bool = True) -> None:
-        cls.__reset_col: str = "\033[0m" if set else ""
-        cls.__do_colour = set
 
-
+    # ——————————————————————————————————————————————————————————————————————————————————————————————————————————— #
     # —— Computed Properties ——————————————————————————————————————————————————————————— #
     
     @property
     def base(self) -> str:
         return self.at_level(0)
-    
+
     @property
     def id(self) -> str:
         return self.id_at_level(INFINITY)
@@ -153,32 +152,43 @@ class UIElement:
 
     # —— Public Methods ———————————————————————————————————————————————————————————————— #
     
-    def at_level(self, level: int, *, sep: str = __PARENT_SEPARATOR) -> str:
-        return self._get_str(level, sep)
+    def at_level(self, level: int,*, sep: str = __PARENT_SEPARATOR, colour: bool = True) -> str:
+        return self._get_str(level, sep, colour)
     
-    def id_at_level(self, level: int | Infinity, sep: str = __ID_SEPARATOR) -> str:
-        return self._get_id(level, sep)
+    def id_at_level(self, level: int | Infinity, sep: str = __ID_SEPARATOR, colour: bool = True) -> str:
+        return self._get_id(level, sep, colour)
 
 
     # —— _Private Methods —————————————————————————————————————————————————————————————— #
 
-    def _get_str(self, _level: int, _sep: str) -> str:
-        parent: str = (
+    def _get_str(self, _level: int, _sep: str, colour: bool) -> str:
+        parent: Final[str] = (
             f"{_sep}{self.parent._get_str(_level-1, _sep)}"
-            if self.parent is not None and _level > 0
-            else ""
+            if self.parent is not None and _level > 0 else
+            EMPTY_STR
         )
+        if colour: ...
         return f"{self.type} {self.__iden_fmtd()}{parent}"
 
 
-    def _get_id(self, _level: int | Infinity, _sep: str) -> str:
+    def _get_id(self, _level: int | Infinity, _sep: str, colour: bool) -> str:
         _parent: Final[str] = (
-            f"{_sep}{self.parent._get_id(_level-1, _sep)}" if self.parent and _level > 0  # type: ignore
-            else ''
+            f"{_sep}{self.parent._get_id(_level-1, _sep)}"
+            if self.parent is not None and _level > 0 else
+            EMPTY_STR
         )
-        return f"{self.__colour}{id(self)}{self.__reset_col}{_parent}"
-    
+        _colour, _reset = (
+            (self.__colour, self.__RESET)
+            if colour
+            else [EMPTY_STR]*2
+        )
+        return (
+            f"{_colour}{id(self)}{_reset}{_parent}"
+            if colour else
+            f"{_colour}{id(self)}{_reset}{_parent}")
+        
 
+    # ——————————————————————————————————————————————————————————————————————————————————————————————————————————— #
     # —— __Dunder Methods__ ———————————————————————————————————————————————————————————— #
 
     def  __str__(self) -> str:
@@ -189,7 +199,8 @@ class UIElement:
         _attrs: tuple[str, ...] = (
             f"type: {self.type}",
             ( # print the correct identifier, based on which one's active
-                f"name: {self.name}" if self.name else
+                f"name: {self.name}"
+                if self.name is not None else
                 f"idx: {self.idx}"
             ),
             f"parent: {str(self.parent)}",
@@ -201,7 +212,7 @@ class UIElement:
 
     # —— __Helper Functions ———————————————————————————————————————————————————————————— #
 
-    __iden_fmtd: Final[Callable[[Self],      str ]] = lambda s: f'"{s.name}"' if s.name else str(s.idx)
+    __iden_fmtd: Final[Callable[[Self],      str ]] = lambda s: f'"{s.name}"' if s.name is not None else str(s.idx)
     __is_string: Final[Callable[[Any],       bool]] = lambda x: isinstance(x, str)
     __join_list: Final[Callable[[list[str]], str ]] = lambda x: UIElement.__LIST_DELIM.join(x)
 

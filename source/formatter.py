@@ -87,6 +87,7 @@ def parse_file(_file_contents: str) -> ln_obj:
 # ——— main —————————————————————————————————————————————————————————————————————————————————————————————————————————— #
 
 def main() -> None:
+    from pprint import pp as pprint
 
     filepath: Final[str] = argv[1] if ARGC >= 2 else input(INPUT_PROMPT)
 
@@ -100,8 +101,12 @@ def main() -> None:
         # print(line["indent"], line["content"])
         ui_elem: UIElement = line["content"]
         print(ui_elem.id(True))
+        # print(ui_elem)
 
-    print(len(UIElement.all_UIElements))
+    # pprint(UIElement.all_UIElements)
+    # print(UIElement.all_UIElements)
+    # print(len(UIElement.all_UIElements))
+    
 
 
 if __name__ == "__main__":

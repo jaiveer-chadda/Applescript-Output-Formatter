@@ -13,7 +13,7 @@ match_tuple = tuple[str | None, str | None, str | None]
 # —————————————————————————————————————————————————— #
 
 OF_DELIM:    Final[str] = " of "
-_HASH_DELIM: Final[str] = str(uuid8())
+_LIST_DELIM: Final[str] = str(uuid8())  # '▄'  # (for debugging)
 
 _TYPE_REGEX: Final[str] = '([^"]+?)'
 _IDX_REGEX:  Final[str] = '(\\d+)'
@@ -24,21 +24,37 @@ _MATCH_ALL_REGEX: Final[str] = f"{_TYPE_REGEX} (?:{_IDX_REGEX}|{_NAME_REGEX})$"
 # —————————————————————————————————————————————————— #
 
 _is_string: Final[Callable[[Any],       bool]] = lambda x: isinstance(x, str)
-_hash_list: Final[Callable[[list[str]], int ]] = lambda x: hash(_HASH_DELIM.join(x))
+_join_list: Final[Callable[[list[str]], str ]] = lambda x: _LIST_DELIM.join(x)
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————— #
 
 class UIElement:
-    
-    all_UIElements: set = set()
 
-    def __init__(self: UIElement, input_: str | list[str]) -> None:
+    all_UIElements: dict[str, UIElement] = {}
+    __all_segments: list[str]
+
+    def __new__(cls: UIElement, input_: str | list[str]) -> UIElement:
+        cls.__all_segments = split_unquoted(OF_DELIM, input_) if _is_string(input_) else input_
+
+        inst: UIElement = super().__new__(cls)
         
-        self.hash: int = _hash_list(input_)
-        self.all_UIElements.add(self.hash)
+        _unique_id: int = _join_list(cls.__all_segments)
+        inst._unique_id = _unique_id
 
-        _all_segments: list[str] = split_unquoted(OF_DELIM, input_) if _is_string(input_) else input_
+        if inst._unique_id in cls.all_UIElements:
+            return cls.all_UIElements[_unique_id]
+
+        cls.all_UIElements[_unique_id] = inst
+        return inst
+
+    # ——————————————————————————————————————————————————————————————————————————— #
+
+    def __init__(self: UIElement, _) -> None:
+
+        _all_segments: list[str] = self.__all_segments
         _parse_result: Final[match_tuple] = self._parse_raw_elem_name(_all_segments[0])
+
+        self._unique_id: int
 
         self.type:          str  =     _parse_result[0]
         self.idx:  Optional[int] = int(_parse_result[1]) if _parse_result[1] else None
@@ -58,7 +74,7 @@ class UIElement:
         if do_colour:
             reset = "\033[0m"
 
-            seed(self.hash)
+            seed(self._unique_id)
             r: int = randrange(50, 255)
             g: int = randrange(50, 255)
             b: int = randrange(50, 255)
@@ -67,7 +83,7 @@ class UIElement:
 
         parent = f".{self.parent.id(do_colour)}" if self.parent else ''
         
-        return f"{colour}{id(self)}{parent}{reset}"
+        return f"{colour}{id(self)}{reset}{parent}"
     
     # ——————————————————————————————————————————————————————————————————————————— #
 
@@ -104,6 +120,6 @@ class UIElement:
 
     def   _iden_formatted(self) -> str: return f'"{self.iden}"'         if self.name   else self.iden
     def   _name_formatted(self) -> str: return f'"{self.name}"'         if self.name   else None
-    def _parent_formatted(self) -> str: return f"\t/ {str(self.parent)}" if self.parent else ''
+    def _parent_formatted(self) -> str: return f" / {str(self.parent)}" if self.parent else ''
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————— #

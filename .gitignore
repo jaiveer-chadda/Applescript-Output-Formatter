@@ -1,7 +1,7 @@
 __pycache__/
 *.pyc
 
-_*
+tests/_*
 
 .DS_Store
 .vscode/

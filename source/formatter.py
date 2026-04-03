@@ -19,8 +19,8 @@ ln_obj = list[dict[str, int | UIElement]]
 ARGC: Final[int] = len(argv)
 
 NEWLINE:      Final[str] = '\n'
-OPEN_PAREN:   Final[str] = '{'
-CLOSE_PAREN:  Final[str] = '}'
+OPEN_BRACE:   Final[str] = '{'
+CLOSE_BRACE:  Final[str] = '}'
 
 COMMA_DELIM:  Final[str] = ", "
 
@@ -45,68 +45,54 @@ def read_file(file: str) -> str:
 
     # Read the file
     with open(file, 'r') as f:
-        _contents: str = f.read().strip()
-    
+        contents: Final[str] = f.read().strip()
+
     # ——————————————————————————————————————————————————————— #
-    
+
     # Check that the stripped file is just one line long
-    if _contents.count(NEWLINE) > 0:
+    if contents.count(NEWLINE) > 0:
         raise ValueError(NOT_SINGLE_LINE_ERR_MSG)
 
-    return _contents
+    return contents
 
 
 # ——— clean_file ———————————————————————————————————————————————————————————————————————————————————————————————————— #
 
-def clean_file(_file_contents: str) -> str:
-    _file_contents: str
+def clean_file(contents: str) -> str:
 
     # If the file starts or ends with curly braces, remove them
-    if _file_contents[0]  == OPEN_PAREN:  _file_contents = _file_contents[1:]
-    if _file_contents[-1] == CLOSE_PAREN: _file_contents = _file_contents[:-1]
-    
-    return _file_contents
+    if contents[0]  == OPEN_BRACE:  contents = contents[1:]
+    if contents[-1] == CLOSE_BRACE: contents = contents[:-1]
+
+    return contents
 
 
 # ——— parse_file ———————————————————————————————————————————————————————————————————————————————————————————————————— #
 
-def parse_file(_file_contents: str) -> ln_obj:
+def parse_file(contents: str) -> ln_obj:
     # Split the file at every unquoted instance of ", "
-    _file_lines: Final[list[str]] = split_unquoted(COMMA_DELIM, _file_contents)
+    _file_lines: Final[list[str]] = split_unquoted(COMMA_DELIM, contents)
 
-    # Create a dictionary for each line
-    return [
-        {
-            "indent": 0,
-            "content": UIElement(_line)
-        }
-        for _line in _file_lines
-    ]
+    # Create a dictionary for each line, while passing each line to UIElement
+    return [{"indent": 0, "content": UIElement(line)} for line in _file_lines]
 
 
 # ——— main —————————————————————————————————————————————————————————————————————————————————————————————————————————— #
 
 def main() -> None:
-    from pprint import pp as pprint
 
     filepath: Final[str] = argv[1] if ARGC >= 2 else input(INPUT_PROMPT)
 
     raw_file_cont: Final[str]    =  read_file(filepath)
     file_contents: Final[str]    = clean_file(raw_file_cont)
     lines_object:  Final[ln_obj] = parse_file(file_contents)
-    
+
     # ——————————————————————————————————————————————————————— #
 
     for line in lines_object:
-        # print(line["indent"], line["content"])
         ui_elem: UIElement = line["content"]
-        print(ui_elem.id(True))
-        # print(ui_elem)
-
-    # pprint(UIElement.all_UIElements)
-    # print(UIElement.all_UIElements)
-    # print(len(UIElement.all_UIElements))
-    
+        # print(ui_elem.id(do_colour=True))
+        print(line["indent"], ui_elem)
 
 
 if __name__ == "__main__":

@@ -76,6 +76,8 @@ def parse_file(contents: str) -> list[UIElement]:
 
 def main() -> None:
 
+    UIElement.do_colour()
+
     filepath: Final[str] = argv[1] if ARGC >= 2 else input(INPUT_PROMPT)
 
     raw_file_cont: Final[str]             =  read_file(filepath)
@@ -83,10 +85,12 @@ def main() -> None:
     ui_elems_obj:  Final[list[UIElement]] = parse_file(file_contents)
 
     # ——————————————————————————————————————————————————————— #
+    
+    for ui_elem in ui_elems_obj: print(                    ui_elem.id_at_level(0))
+    for ui_elem in ui_elems_obj: print('\t'*ui_elem.depth, ui_elem.   at_level(0))
 
-    for ui_elem in ui_elems_obj:
-        # print(ui_elem.id(do_colour=True))
-        print(ui_elem.depth, ui_elem)
+    # for i in UIElement.get_all():
+    #     print(repr(i))
 
 
 if __name__ == "__main__":

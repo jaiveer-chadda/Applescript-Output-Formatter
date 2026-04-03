@@ -115,17 +115,8 @@ class UIElement:
 
     # ——————————————————————————————————————————————————————————————————————————— #
 
-    def __str__(self) -> str:
-        return f"{self.type} {self._iden_formatted()}{self._parent_formatted()}"
-        # # For Debugging
-        # type_: str = self.type.replace("application", "app")
-        # iden_: str = str(self._iden_formatted()).replace(" All Raycast Extensions.scpt", "...scpt")
-        # return f"{type_} {iden_}{self._parent_formatted()}"
-
-    def __repr__(self) -> str:
-        return (f"UIElement(type: {self.type}, iden: {self._iden_formatted()}, "
-                f"parent: {str(self.parent)}, depth: {str(self.depth)})"
-        )
+    def  __str__(self) -> str: return f"{self.type} {self._iden_formatted()}"
+    def __repr__(self) -> str: return f"{self.__str__()}{self._parent_formatted()}"
 
     # ——————————————————————————————————————————————————————————————————————————— #
 

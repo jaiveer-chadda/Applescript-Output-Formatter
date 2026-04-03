@@ -79,11 +79,20 @@ class UIElement:
 
         # Just a note to self that self._unique_id does exist, but is assigned in __new__
         self.unique_id: int
+        self.parent: Optional[UIElement]
+        self.depth: int
 
         # Recursively parse the element's parents by handing the constructor all remaining segments
         #  But only do so if there are actually any segments left
         _remaining_segs: list[str] = _all_segments[1:]
-        self.parent: Optional[UIElement] = UIElement(_remaining_segs) if len(_remaining_segs) != 0 else None
+
+        if len(_remaining_segs) == 0:
+            self.parent = None
+            self.depth = 0
+            return
+
+        self.parent = UIElement(_remaining_segs)
+        self.depth = self.parent.depth + 1
 
     # ——————————————————————————————————————————————————————————————————————————— #
 
@@ -114,7 +123,9 @@ class UIElement:
         # return f"{type_} {iden_}{self._parent_formatted()}"
 
     def __repr__(self) -> str:
-        return f"UIElement(type: {self.type}, iden: {self._iden_formatted()}, parent: {str(self.parent)})"
+        return (f"UIElement(type: {self.type}, iden: {self._iden_formatted()}, "
+                f"parent: {str(self.parent)}, depth: {str(self.depth)})"
+        )
 
     # ——————————————————————————————————————————————————————————————————————————— #
 

@@ -12,10 +12,6 @@ from ui_element import UIElement
 
 # ——— Constants ————————————————————————————————————————————————————————————————————————————————————————————————————— #
 
-ln_obj = list[dict[str, int | UIElement]]
-
-# —————————————————————————————————————————————————— #
-
 ARGC: Final[int] = len(argv)
 
 NEWLINE:      Final[str] = '\n'
@@ -23,7 +19,6 @@ OPEN_BRACE:   Final[str] = '{'
 CLOSE_BRACE:  Final[str] = '}'
 
 COMMA_DELIM:  Final[str] = ", "
-
 INPUT_PROMPT: Final[str] = "Enter input filepath >>> "
 
 
@@ -69,12 +64,12 @@ def clean_file(contents: str) -> str:
 
 # ——— parse_file ———————————————————————————————————————————————————————————————————————————————————————————————————— #
 
-def parse_file(contents: str) -> ln_obj:
+def parse_file(contents: str) -> list[UIElement]:
     # Split the file at every unquoted instance of ", "
     _file_lines: Final[list[str]] = split_unquoted(COMMA_DELIM, contents)
 
-    # Create a dictionary for each line, while passing each line to UIElement
-    return [{"indent": 0, "content": UIElement(line)} for line in _file_lines]
+    # Create a UIElement object out of each line
+    return [UIElement(line) for line in _file_lines]
 
 
 # ——— main —————————————————————————————————————————————————————————————————————————————————————————————————————————— #
@@ -83,16 +78,15 @@ def main() -> None:
 
     filepath: Final[str] = argv[1] if ARGC >= 2 else input(INPUT_PROMPT)
 
-    raw_file_cont: Final[str]    =  read_file(filepath)
-    file_contents: Final[str]    = clean_file(raw_file_cont)
-    lines_object:  Final[ln_obj] = parse_file(file_contents)
+    raw_file_cont: Final[str]             =  read_file(filepath)
+    file_contents: Final[str]             = clean_file(raw_file_cont)
+    ui_elems_obj:  Final[list[UIElement]] = parse_file(file_contents)
 
     # ——————————————————————————————————————————————————————— #
 
-    for line in lines_object:
-        ui_elem: UIElement = line["content"]
+    for ui_elem in ui_elems_obj:
         # print(ui_elem.id(do_colour=True))
-        print(line["indent"], ui_elem)
+        print(ui_elem.depth, ui_elem)
 
 
 if __name__ == "__main__":

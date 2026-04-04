@@ -12,7 +12,7 @@ from typing import Callable, Final
 
 class Log:
 
-    fmt = str
+    type fmt = str
 
     _MSG_SEP:  Final[str] = '│'
     _LINE_CHR: Final[str] = '─'

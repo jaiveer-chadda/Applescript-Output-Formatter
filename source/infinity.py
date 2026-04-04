@@ -6,7 +6,7 @@ from _format import *
 
 class Infinity(float):
 
-    __valid_input_types = str | int | float | None
+    type __valid_input_types = str | int | float | None
 
     __VALID_FLOAT_STRS: Final[tuple[str, ...]] = ("inf", "infinity", "+inf", "+infinity")
     __VALID_INPUT_STRS: Final[tuple[str, ...]] = ("", '∞', "+∞", "None", *__VALID_FLOAT_STRS)

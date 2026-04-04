@@ -9,7 +9,9 @@ from infinity import Infinity
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————— #
 
-empty_str = Literal['']
+type rgb        = tuple[int, int, int]
+type empty_str  = Literal['']
+type empty_dict = dict
 
 EMPTY_STR: Final[Literal['']] = ''
 INFINITY: Final[Infinity] = Infinity()
@@ -20,9 +22,10 @@ class UIElement:
     
     # —— Constants / Declarations —————————————————————————————————————————————————————— #
     # ———— Types ————————————————————————————————————————— #
-    
-    match_tuple = tuple[str, Optional[int], Optional[str]]
-    
+
+    type match_tuple   = tuple[str, Optional[int], Optional[str]]
+    type colour_option = Literal[None, "unique", "indent"]
+
     # ———— Constants ————————————————————————————————————— #
 
     __RESET: Final[str] = "\x1b[0m"

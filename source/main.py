@@ -8,6 +8,7 @@ from typing import Final
 
 from split import split_unquoted
 from ui_element import UIElement
+from infinity import Infinity
 
 
 # ——— Constants ————————————————————————————————————————————————————————————————————————————————————————————————————— #
@@ -69,7 +70,8 @@ def parse_file(contents: str) -> list[UIElement]:
     _file_lines: Final[list[str]] = split_unquoted(COMMA_DELIM, contents)
 
     # Create a UIElement object out of each line
-    return [UIElement(line) for line in _file_lines]
+    return [UIElement(_file_lines[0])]
+    # return [UIElement(line) for line in _file_lines]
 
 
 # ——— main —————————————————————————————————————————————————————————————————————————————————————————————————————————— #
@@ -83,9 +85,9 @@ def main() -> None:
     ui_elems_obj:  Final[list[UIElement]] = parse_file(file_contents)
 
     # ——————————————————————————————————————————————————————— #
-
-    for ui_elem in ui_elems_obj[:32]: print(                    ui_elem.id_at_level(0))
-    for ui_elem in ui_elems_obj[:32]: print('\t'*ui_elem.depth, ui_elem.   at_level(0))
+    
+    for ui_elem in ui_elems_obj[:32]: print(                     ui_elem.id_at_level(Infinity(), colour='indent'))
+    for ui_elem in ui_elems_obj[:32]: print('\t'*ui_elem.indent, ui_elem.   at_level(Infinity(), colour='indent'))
 
 
 if __name__ == "__main__":
